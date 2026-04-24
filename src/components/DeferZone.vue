@@ -5,8 +5,10 @@ import { useBoardsStore } from '@/stores/boards'
 import ItemCard from '@/components/ItemCard.vue'
 import { Clock, Pencil, Check } from 'lucide-vue-next'
 import type { Item } from '@/types'
+import { useToast } from '@/composables/useToast'
 
 const store = useBoardsStore()
+const { show } = useToast()
 
 const isEditingMessage = ref(false)
 const editMessage = ref('')
@@ -23,14 +25,16 @@ function confirmEditMessage() {
   isEditingMessage.value = false
 }
 
-// vuedraggable two-way binding for defer items
 const localItems = computed<Item[]>({
   get: () => store.deferItems,
-  set: (newVal) => {
-    const focus = store.focusItems
-    store.reorderItems([...focus, ...newVal])
+  set: (newVal: Item[]) => {
+    store.reorderItems([...store.focusItems, ...newVal])
   },
 })
+
+function onDragEnd() {
+  show('已更新暂缓排序')
+}
 </script>
 
 <template>
@@ -73,7 +77,7 @@ const localItems = computed<Item[]>({
       没有暂缓事项 🎉
     </div>
 
-    <draggable
+      <draggable
       v-else
       v-model="localItems"
       item-key="id"
@@ -82,13 +86,13 @@ const localItems = computed<Item[]>({
       ghost-class="opacity-40"
       class="space-y-2"
       group="items"
+      @end="onDragEnd"
     >
       <template #item="{ element, index }">
         <ItemCard
           :item="element"
           :index="(store.activeBoard?.topN ?? 3) + index"
           zone="defer"
-          :total-in-zone="store.deferItems.length"
           :is-first="index === 0"
           :is-last="index === store.deferItems.length - 1"
         />

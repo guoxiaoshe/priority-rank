@@ -3,17 +3,18 @@ import { ref } from 'vue'
 import { useBoardsStore } from '@/stores/boards'
 import { GripVertical, ChevronUp, ChevronDown, Pencil, Trash2, Check, X } from 'lucide-vue-next'
 import type { Item } from '@/types'
+import { useToast } from '@/composables/useToast'
 
 const props = defineProps<{
   item: Item
   index: number
   zone: 'focus' | 'defer'
-  totalInZone: number
   isFirst: boolean
   isLast: boolean
 }>()
 
 const store = useBoardsStore()
+const { show } = useToast()
 const isEditing = ref(false)
 const editText = ref('')
 
@@ -31,6 +32,26 @@ function confirmEdit() {
 
 function cancelEdit() {
   isEditing.value = false
+}
+
+function handleMoveUp() {
+  store.moveItemUp(props.item.id)
+  show('已上移一位')
+}
+
+function handleMoveDown() {
+  store.moveItemDown(props.item.id)
+  show('已下移一位')
+}
+
+function handleMoveToFocus() {
+  store.moveToFocus(props.item.id)
+  show(`「${props.item.text}」已移入聚焦区`)
+}
+
+function handleMoveToDefer() {
+  store.moveToDefer(props.item.id)
+  show(`「${props.item.text}」已移入以后再说`)
 }
 </script>
 
@@ -90,7 +111,7 @@ function cancelEdit() {
           class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 disabled:opacity-30"
           :disabled="isFirst"
           title="上移"
-          @click="store.moveItemUp(item.id)"
+          @click="handleMoveUp"
         >
           <ChevronUp :size="15" />
         </button>
@@ -98,7 +119,7 @@ function cancelEdit() {
           class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 disabled:opacity-30"
           :disabled="isLast"
           title="下移"
-          @click="store.moveItemDown(item.id)"
+          @click="handleMoveDown"
         >
           <ChevronDown :size="15" />
         </button>
@@ -120,7 +141,7 @@ function cancelEdit() {
           v-if="zone === 'defer'"
           class="ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/60 transition-colors"
           title="移入聚焦区"
-          @click="store.moveToFocus(item.id)"
+          @click="handleMoveToFocus"
         >
           移入聚焦
         </button>
@@ -128,7 +149,7 @@ function cancelEdit() {
           v-if="zone === 'focus'"
           class="ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           title="移入以后再说"
-          @click="store.moveToDefer(item.id)"
+          @click="handleMoveToDefer"
         >
           暂缓
         </button>

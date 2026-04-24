@@ -7,8 +7,9 @@ import AddItemInput from '@/components/AddItemInput.vue'
 import FocusZone from '@/components/FocusZone.vue'
 import DeferZone from '@/components/DeferZone.vue'
 import Toast from '@/components/Toast.vue'
+import HelpDialog from '@/components/HelpDialog.vue'
 import {
-  Download, Upload, RotateCcw, Sparkles, Settings, Moon, Sun, Menu, X as XIcon,
+  Download, Upload, RotateCcw, Sparkles, Settings, Moon, Sun, Menu, X as XIcon, HelpCircle, Trash2,
 } from 'lucide-vue-next'
 
 const store = useBoardsStore()
@@ -17,6 +18,7 @@ const { toasts, show, remove } = useToast()
 const isDark = ref(false)
 const sidebarOpen = ref(false)
 const showSettings = ref(false)
+const showHelp = ref(false)
 const topNInput = ref(3)
 const sortLabelInput = ref('')
 
@@ -26,6 +28,9 @@ onMounted(() => {
   // Restore dark mode preference
   isDark.value = localStorage.getItem('pq-dark') === '1'
   applyDark()
+  if (!localStorage.getItem('pq-help-seen')) {
+    showHelp.value = true
+  }
 })
 
 function syncSettings() {
@@ -97,6 +102,22 @@ function handleImport() {
     }
   }
   input.click()
+}
+
+function openHelp() {
+  showHelp.value = true
+}
+
+function closeHelp() {
+  showHelp.value = false
+  localStorage.setItem('pq-help-seen', '1')
+}
+
+function handleClearAll() {
+  if (confirm('确认清空当前板的所有事项？此操作不可恢复。')) {
+    store.clearAllItems()
+    show('已清空全部事项')
+  }
 }
 </script>
 
@@ -172,6 +193,20 @@ function handleImport() {
             @click="showSettings = !showSettings"
           >
             <Settings :size="18" />
+          </button>
+          <button
+            class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
+            title="清空全部事项"
+            @click="handleClearAll"
+          >
+            <Trash2 :size="18" />
+          </button>
+          <button
+            class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
+            title="使用引导"
+            @click="openHelp"
+          >
+            <HelpCircle :size="18" />
           </button>
           <button
             class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
@@ -258,5 +293,8 @@ function handleImport() {
         @close="remove(toast.id)"
       />
     </div>
+
+    <!-- Help dialog -->
+    <HelpDialog v-if="showHelp" @close="closeHelp" />
   </div>
 </template>
