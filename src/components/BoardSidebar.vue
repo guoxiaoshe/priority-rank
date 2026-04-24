@@ -16,10 +16,15 @@ function startCreate() {
 }
 
 function confirmCreate() {
-  if (newBoardName.value.trim()) {
-    store.addBoard(newBoardName.value.trim())
-  }
+  if (!isCreating.value) return
+
+  const boardName = newBoardName.value.trim()
   isCreating.value = false
+  newBoardName.value = ''
+
+  if (boardName) {
+    store.addBoard(boardName)
+  }
 }
 
 function startEdit(id: string, name: string) {
